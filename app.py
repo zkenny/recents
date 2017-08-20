@@ -21,10 +21,6 @@ def random_string(length):
 def index():
     return "Meow"
 
-@app.route('/help')
-def help():
-    return "Merp"
-
 @app.route('/login')
 def login():
     scope = 'user-read-private user-read-email user-read-recently-played playlist-modify-public playlist-read-private playlist-modify-private user-top-read'
@@ -64,42 +60,42 @@ def callback():
             uri_list = set()
             for item in display_arr:
                 uri_list.add(item['track']['uri'])
-                just_names.add(item['track']['name'])
+                just_names.add(item['track']['name'] + " - " + item['track']['artists'][0]['name'])
 
             top_tracks_url = 'https://api.spotify.com/v1/me/top/tracks' + '?limit=30' + '&time_range=short_term'
             tt_response = requests.get(top_tracks_url, headers=auth_header)
             display_array = json.loads(tt_response.text)['items']
             for i in range(len(display_array)):
-                just_names.add(display_array[i]['name'])
+                just_names.add(display_array[i]['name'] + " - " + display_array[i]['artists'][0]['name'])
                 uri_list.add(display_array[i]['uri'])
 
-            user_playlists_url = 'https://api.spotify.com/v1/me/playlists'
-            playlists_response = requests.get(user_playlists_url, headers=auth_header)
-            playlists_array = json.loads(playlists_response.text)['items']
-            already_exists = False
-            playlist_id = None
-            for i in range(len(playlists_array)):
-                if playlists_array[i]['name'] == "Recently Played":
-                    already_exists = True
-                    playlist_id = playlists_array[i]['id']
-            r_header = {
-                "Authorization":"Bearer {}".format(access_token),
-                "Content-Type": "application/json"
-            }
+            # user_playlists_url = 'https://api.spotify.com/v1/me/playlists'
+            # playlists_response = requests.get(user_playlists_url, headers=auth_header)
+            # playlists_array = json.loads(playlists_response.text)['items']
+            # already_exists = False
+            # playlist_id = None
+            # for i in range(len(playlists_array)):
+            #     if playlists_array[i]['name'] == "Recently Played":
+            #         already_exists = True
+            #         playlist_id = playlists_array[i]['id']
+            # r_header = {
+            #     "Authorization":"Bearer {}".format(access_token),
+            #     "Content-Type": "application/json"
+            # }
 
-            put_payload = {
-                "uris": list(uri_list)
-            }
-            if not already_exists:
-                #create new playlist and add tracks to it
-                new_playlist_url = 'https://api.spotify.com/v1/users/{}/playlists'.format(user_id)
-                create_payload = {
-                    "name": "Recently Added"
-                }
-                new_playlist_response = requests.post(new_playlist_url, data=json.dumps(create_payload), headers=r_header)
-                playlist_id = json.loads(new_playlist_response.text)['id']
-            replace_tracks_url = 'https://api.spotify.com/v1/users/{}/playlists/{}/tracks'.format(user_id, playlist_id)
-            playlist_response = requests.put(replace_tracks_url, data=json.dumps(put_payload), headers=r_header)
+            # put_payload = {
+            #     "uris": list(uri_list)
+            # }
+            # if not already_exists:
+            #     #create new playlist and add tracks to it
+            #     new_playlist_url = 'https://api.spotify.com/v1/users/{}/playlists'.format(user_id)
+            #     create_payload = {
+            #         "name": "Recently Played"
+            #     }
+            #     new_playlist_response = requests.post(new_playlist_url, data=json.dumps(create_payload), headers=r_header)
+            #     playlist_id = json.loads(new_playlist_response.text)['id']
+            # replace_tracks_url = 'https://api.spotify.com/v1/users/{}/playlists/{}/tracks'.format(user_id, playlist_id)
+            # playlist_response = requests.put(replace_tracks_url, data=json.dumps(put_payload), headers=r_header)
             return render_template('index.html', sorted_array=just_names)
         else:
             return "An error occurred 2"
